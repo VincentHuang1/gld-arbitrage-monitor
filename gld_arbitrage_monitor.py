@@ -58,8 +58,8 @@ def index():
     if gold_close.empty or gld_close.empty:
         return "⚠️ 无法获取实时数据，请稍后刷新页面。"
 
-    gold_price = round(gold_close.iloc[-1], 2)
-    gld_price = round(gld_close.iloc[-1], 2)
+    gold_price = float(gold_close.iloc[-1])
+    gld_price = float(gld_close.iloc[-1])
 
     theoretical_price = round(gold_price * GLD_PER_SHARE_OUNCE, 2)
     diff_pct = round((gld_price - theoretical_price) / theoretical_price * 100, 2)
@@ -75,8 +75,8 @@ def index():
     return render_template_string(
         HTML_TEMPLATE,
         time=current_time,
-        gold_price=gold_price,
-        gld_price=gld_price,
+        gold_price=round(gold_price, 2),
+        gld_price=round(gld_price, 2),
         theoretical_price=theoretical_price,
         diff_pct=diff_pct,
         signal=signal,
