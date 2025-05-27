@@ -2,10 +2,9 @@
 from flask import Flask, render_template_string
 import yfinance as yf
 import datetime
+import os
 
 app = Flask(__name__)
-
-# 每股GLD代表的黄金盎司（根据你提供的0.09219142）
 GLD_PER_SHARE_OUNCE = 0.09219142
 
 HTML_TEMPLATE = '''
@@ -50,15 +49,12 @@ HTML_TEMPLATE = '''
 
 @app.route("/")
 def index():
-    # 获取实时价格
     gold_data = yf.download("GC=F", period="1d", interval="1m")
     gld_data = yf.download("GLD", period="1d", interval="1m")
 
-    # 尝试获取最新收盘价（去除缺失数据）
     gold_close = gold_data["Close"].dropna()
     gld_close = gld_data["Close"].dropna()
 
-    # 若任何数据为空，返回提示页面
     if gold_close.empty or gld_close.empty:
         return "⚠️ 无法获取实时数据，请稍后刷新页面。"
 
@@ -87,9 +83,6 @@ def index():
         row_class=row_class
     )
 
-import os
-
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
