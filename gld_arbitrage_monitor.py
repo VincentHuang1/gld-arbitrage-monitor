@@ -54,8 +54,16 @@ def index():
     gold_data = yf.download("GC=F", period="1d", interval="1m")
     gld_data = yf.download("GLD", period="1d", interval="1m")
 
-    gold_price = round(gold_data["Close"].dropna().iloc[-1], 2)
-    gld_price = round(gld_data["Close"].dropna().iloc[-1], 2)
+    # 尝试获取最新收盘价（去除缺失数据）
+    gold_close = gold_data["Close"].dropna()
+    gld_close = gld_data["Close"].dropna()
+
+    # 若任何数据为空，返回提示页面
+    if gold_close.empty or gld_close.empty:
+        return "⚠️ 无法获取实时数据，请稍后刷新页面。"
+
+    gold_price = round(gold_close.iloc[-1], 2)
+    gld_price = round(gld_close.iloc[-1], 2)
 
     theoretical_price = round(gold_price * GLD_PER_SHARE_OUNCE, 2)
     diff_pct = round((gld_price - theoretical_price) / theoretical_price * 100, 2)
