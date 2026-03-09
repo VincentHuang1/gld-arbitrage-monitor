@@ -3,6 +3,7 @@ from flask import Flask, render_template_string
 import yfinance as yf
 import datetime
 import os
+import pandas as pd
 
 app = Flask(__name__)
 GLD_PER_SHARE_OUNCE = 0.09219142
@@ -58,8 +59,28 @@ def index():
     if gold_close.empty or gld_close.empty:
         return "⚠️ 无法获取实时数据，请稍后刷新页面。"
 
-    gold_price = float(gold_close.iloc[-1])
-    gld_price = float(gld_close.iloc[-1])
+    if gold_close.index.tz is None:
+        gold_close.index = gold_close.index.tz_localize("UTC")
+    else:
+        gold_close = gold_close.tz_convert("UTC")
+
+    if gld_close.index.tz is None:
+        gld_close.index = gld_close.index.tz_localize("UTC")
+    else:
+        gld_close = gld_close.tz_convert("UTC")
+
+    combined = pd.concat(
+        [gold_close.rename("gold_close"), gld_close.rename("gld_close")],
+        axis=1,
+        join="inner",
+    ).dropna()
+
+    if combined.empty:
+        return "⚠️ 当前没有可比较的最新报价，请稍后刷新页面。"
+
+    latest = combined.iloc[-1]
+    gold_price = float(latest["gold_close"])
+    gld_price = float(latest["gld_close"])
 
     theoretical_price = round(gold_price * GLD_PER_SHARE_OUNCE, 2)
     diff_pct = round((gld_price - theoretical_price) / theoretical_price * 100, 2)
